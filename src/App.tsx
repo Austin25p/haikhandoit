@@ -105,6 +105,7 @@ const Magnetic = ({ children, className }: { children: React.ReactElement, class
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (window.innerWidth < 768) return;
     const { clientX, clientY } = e;
     const { height, width, left, top } = ref.current!.getBoundingClientRect();
     const middleX = clientX - (left + width / 2);
@@ -113,6 +114,7 @@ const Magnetic = ({ children, className }: { children: React.ReactElement, class
   };
 
   const reset = () => {
+    if (window.innerWidth < 768) return;
     setPosition({ x: 0, y: 0 });
   };
 
@@ -440,12 +442,12 @@ export default function App() {
       <CustomCursor />
       
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-brand-gold origin-left z-50 shadow-[0_0_10px_#d4af37]"
+        className="fixed top-0 left-0 right-0 h-1 bg-brand-gold origin-left z-[60] shadow-[0_0_10px_#d4af37]"
         style={{ scaleX }}
       />
 
       {/* Navbar */}
-      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${isScrolled ? 'glass-panel border-b border-white/10 py-0' : 'bg-transparent py-4'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'glass-panel border-b border-white/10 py-0' : 'bg-transparent py-4'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
@@ -490,8 +492,16 @@ export default function App() {
           </motion.div>
 
           {/* Mobile Menu Toggle */}
-          <button className="md:hidden text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          <button 
+            className="md:hidden text-white relative z-[100] p-4 -mr-4 flex items-center justify-center cursor-pointer touch-manipulation" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsMenuOpen(!isMenuOpen);
+            }}
+            aria-label="Toggle Menu"
+          >
+            {isMenuOpen ? <X size={32} /> : <Menu size={32} />}
           </button>
         </div>
 
@@ -504,11 +514,11 @@ export default function App() {
               exit={{ height: 0, opacity: 0 }}
               className="md:hidden glass-panel border-t border-white/10 overflow-hidden"
             >
-              <div className="flex flex-col p-6 gap-4">
-                <button onClick={() => scrollToSection('home')} className="text-left text-lg font-medium">Home</button>
-                <button onClick={() => scrollToSection('services')} className="text-left text-lg font-medium">Services</button>
-                <button onClick={() => scrollToSection('location')} className="text-left text-lg font-medium">Location</button>
-                <a href="tel:08160004019" className="px-5 py-3 bg-brand-gold text-black font-semibold rounded-full text-center mt-4 shadow-[0_0_15px_rgba(212,175,55,0.4)]">
+              <div className="flex flex-col p-6 gap-2">
+                <button onClick={() => scrollToSection('home')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">Home</button>
+                <button onClick={() => scrollToSection('services')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">Services</button>
+                <button onClick={() => scrollToSection('location')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">Location</button>
+                <a href="tel:08160004019" className="px-5 py-4 bg-brand-gold text-black font-semibold rounded-full text-center mt-4 shadow-[0_0_15px_rgba(212,175,55,0.4)] cursor-pointer touch-manipulation block w-full">
                   Call Now: 08160004019
                 </a>
               </div>
@@ -561,27 +571,27 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2, duration: 0.5 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-8 preserve-3d"
+              className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full relative z-20"
             >
-              <Magnetic>
+              <Magnetic className="w-full sm:w-auto">
                 <motion.button
-                  whileHover={{ scale: 1.05, translateZ: 30 }}
-                  whileTap={{ scale: 0.95, translateZ: 0 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => scrollToSection('services')}
-                  className="w-full sm:w-auto px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-all flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(255,255,255,0.2)] text-lg"
+                  className="w-full sm:w-auto px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-all flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(255,255,255,0.2)] text-lg cursor-pointer touch-manipulation"
                 >
                   Explore Ventures
                   <ArrowRight size={20} />
                 </motion.button>
               </Magnetic>
-              <Magnetic>
+              <Magnetic className="w-full sm:w-auto">
                 <motion.a
-                  whileHover={{ scale: 1.05, translateZ: 30, boxShadow: "0px 15px 40px rgba(212, 175, 55, 0.6)" }}
-                  whileTap={{ scale: 0.95, translateZ: 0 }}
+                  whileHover={{ scale: 1.05, boxShadow: "0px 15px 40px rgba(212, 175, 55, 0.6)" }}
+                  whileTap={{ scale: 0.95 }}
                   href="https://wa.me/2347011236342"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto px-10 py-5 bg-brand-gold text-black font-bold rounded-full hover:bg-brand-gold-light transition-all flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(212,175,55,0.4)] text-lg border border-brand-gold-light/50"
+                  className="w-full sm:w-auto px-10 py-5 bg-brand-gold text-black font-bold rounded-full hover:bg-brand-gold-light transition-all flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(212,175,55,0.4)] text-lg border border-brand-gold-light/50 cursor-pointer touch-manipulation"
                 >
                   <MessageSquare size={20} />
                   Book Appointment
@@ -645,10 +655,10 @@ export default function App() {
                       <h3 className="text-xl font-bold mb-3 font-serif">{service.title}</h3>
                       <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{service.description}</p>
                       <motion.button
-                        whileHover={{ scale: 1.02, translateZ: 10 }}
+                        whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setActiveService(service)}
-                        className="w-full py-3 rounded-xl border border-brand-gold/30 text-brand-gold font-medium hover:bg-brand-gold hover:text-black transition-all flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(212,175,55,0.1)] hover:shadow-[0_0_20px_rgba(212,175,55,0.4)]"
+                        className="w-full py-4 rounded-xl border border-brand-gold/30 text-brand-gold font-medium hover:bg-brand-gold hover:text-black transition-all flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(212,175,55,0.1)] hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] cursor-pointer touch-manipulation"
                       >
                         <MessageSquare size={16} />
                         Ask AI Consultant
@@ -707,14 +717,14 @@ export default function App() {
                 </Magnetic>
               </div>
 
-              <Magnetic className="inline-block">
+              <Magnetic className="inline-block w-full sm:w-auto">
                 <motion.a
-                  whileHover={{ scale: 1.05, translateZ: 30, boxShadow: "0px 15px 30px rgba(255,255,255,0.2)" }}
+                  whileHover={{ scale: 1.05, boxShadow: "0px 15px 30px rgba(255,255,255,0.2)" }}
                   whileTap={{ scale: 0.95 }}
                   href="https://www.google.com/maps/dir/?api=1&destination=13+Ardulai+crescent,+alagbole+akute,+ogun+state,+nigeria"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-all items-center gap-3 shadow-xl text-lg"
+                  className="inline-flex w-full sm:w-auto justify-center px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-all items-center gap-3 shadow-xl text-lg cursor-pointer touch-manipulation"
                   style={{ transform: 'translateZ(40px)' }}
                 >
                   <MapPin size={20} />
