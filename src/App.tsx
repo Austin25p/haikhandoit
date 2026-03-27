@@ -100,6 +100,43 @@ const useAIConsultant = () => {
 
 // --- Components ---
 
+const Logo = () => (
+  <div className="flex items-center gap-3 group cursor-pointer">
+    <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#FDE047] to-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)] overflow-hidden">
+      <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top_right,#fff,transparent)]" />
+      <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-black/20 rounded-full blur-sm group-hover:scale-150 transition-transform duration-500" />
+      <svg 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-7 h-7 text-black relative z-10 transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-300"
+      >
+        <path 
+          d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+          fill="currentColor"
+          fillOpacity="0.1"
+        />
+        <path 
+          d="M18 3l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" 
+          fill="currentColor" 
+        />
+      </svg>
+    </div>
+    <div className="flex flex-col">
+      <span className="text-xl font-serif font-bold tracking-widest leading-none bg-clip-text text-transparent bg-gradient-to-r from-white to-[#D4AF37]">
+        HAIKHANDOIT
+      </span>
+      <span className="text-[0.6rem] uppercase tracking-[0.3em] text-[#D4AF37]/80 font-medium mt-1">
+        Ventures
+      </span>
+    </div>
+  </div>
+);
+
 const Magnetic = ({ children, className }: { children: React.ReactElement, className?: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -150,6 +187,27 @@ const TextReveal = ({ text, className, delay = 0 }: { text: string, className?: 
           {word}
         </motion.span>
       ))}
+    </div>
+  );
+};
+
+const Marquee = () => {
+  const items = [
+    "WALL PAINTING", "•", "PAINT PRODUCTION", "•", "SKILLED LABOUR", "•", 
+    "CLEANING AGENCY", "•", "MUSICAL INSTRUMENTS", "•", "MUSIC PRODUCTION", "•"
+  ];
+  return (
+    <div className="w-full bg-brand-gold py-4 overflow-hidden flex items-center border-y border-brand-gold-light/20 relative z-20">
+      <div className="marquee-container">
+        <div className="marquee-content text-black font-display font-bold text-xl tracking-widest">
+          {items.map((item, i) => <span key={i}>{item}</span>)}
+          {items.map((item, i) => <span key={`dup-${i}`}>{item}</span>)}
+        </div>
+        <div className="marquee-content text-black font-display font-bold text-xl tracking-widest" aria-hidden="true">
+          {items.map((item, i) => <span key={i}>{item}</span>)}
+          {items.map((item, i) => <span key={`dup-${i}`}>{item}</span>)}
+        </div>
+      </div>
     </div>
   );
 };
@@ -446,18 +504,27 @@ export default function App() {
         style={{ scaleX }}
       />
 
+      {/* Mobile Nav Overlay */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMenuOpen(false)}
+            className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'glass-panel border-b border-white/10 py-0' : 'bg-transparent py-4'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2"
           >
-            <div className="w-10 h-10 bg-brand-gold rounded-lg flex items-center justify-center text-black font-bold text-xl shadow-[0_0_15px_rgba(212,175,55,0.4)]">
-              H
-            </div>
-            <span className="text-xl font-serif font-bold tracking-wider">HAIKHANDOIT</span>
+            <Logo />
           </motion.div>
 
           {/* Desktop Nav */}
@@ -468,6 +535,10 @@ export default function App() {
           >
             <button onClick={() => scrollToSection('home')} className="text-sm font-medium hover:text-brand-gold transition-colors relative group uppercase tracking-widest">
               Home
+              <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-brand-gold transition-all duration-300 group-hover:w-full shadow-[0_0_10px_#d4af37]"></span>
+            </button>
+            <button onClick={() => scrollToSection('about')} className="text-sm font-medium hover:text-brand-gold transition-colors relative group uppercase tracking-widest">
+              About
               <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-brand-gold transition-all duration-300 group-hover:w-full shadow-[0_0_10px_#d4af37]"></span>
             </button>
             <button onClick={() => scrollToSection('services')} className="text-sm font-medium hover:text-brand-gold transition-colors relative group uppercase tracking-widest">
@@ -516,6 +587,7 @@ export default function App() {
             >
               <div className="flex flex-col p-6 gap-2">
                 <button onClick={() => scrollToSection('home')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">Home</button>
+                <button onClick={() => scrollToSection('about')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">About</button>
                 <button onClick={() => scrollToSection('services')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">Services</button>
                 <button onClick={() => scrollToSection('location')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">Location</button>
                 <a href="tel:08160004019" className="px-5 py-4 bg-brand-gold text-black font-semibold rounded-full text-center mt-4 shadow-[0_0_15px_rgba(212,175,55,0.4)] cursor-pointer touch-manipulation block w-full">
@@ -542,30 +614,30 @@ export default function App() {
           <img
             src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=2000"
             alt="Premium Interior"
-            className="w-full h-full object-cover opacity-30 mix-blend-luminosity"
+            className="w-full h-full object-cover opacity-20 mix-blend-luminosity"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-brand-dark/90 via-brand-dark/70 to-brand-dark"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-dark/95 via-brand-dark/80 to-brand-dark"></div>
         </motion.div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center preserve-3d w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center preserve-3d w-full mt-10">
           <motion.div
             initial={{ opacity: 0, translateZ: -100 }}
             animate={{ opacity: 1, translateZ: 0 }}
-            transition={{ duration: 1, type: "spring", bounce: 0.4 }}
+            transition={{ duration: 1.5, type: "spring", bounce: 0.3 }}
             className="preserve-3d flex flex-col items-center"
           >
-            <div className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold leading-tight mb-6 text-3d flex flex-col items-center">
-              <TextReveal text="Excellence in" />
-              <TextReveal text="Every Detail." className="text-gradient-gold" delay={0.3} />
+            <div className="text-[12vw] md:text-[8vw] lg:text-[100px] font-serif font-bold leading-[0.85] mb-8 text-3d flex flex-col items-center tracking-tighter">
+              <TextReveal text="EXCELLENCE IN" />
+              <TextReveal text="EVERY DETAIL." className="text-gradient-gold italic pr-4" delay={0.3} />
             </div>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 1 }}
-              className="text-lg md:text-2xl text-gray-300 max-w-3xl mx-auto mb-12 font-light leading-relaxed"
+              className="text-lg md:text-2xl text-gray-300 max-w-2xl mx-auto mb-12 font-light leading-relaxed"
             >
-              100X Efficiency. Premium Quality. From construction painting to music production, we deliver unparalleled results in Lagos and Ogun State.
+              100X Efficiency. Premium Quality. From construction painting to music production, we deliver unparalleled results.
             </motion.p>
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -586,12 +658,12 @@ export default function App() {
               </Magnetic>
               <Magnetic className="w-full sm:w-auto">
                 <motion.a
-                  whileHover={{ scale: 1.05, boxShadow: "0px 15px 40px rgba(212, 175, 55, 0.6)" }}
+                  whileHover={{ scale: 1.05, boxShadow: "0px 15px 40px rgba(229, 193, 88, 0.6)" }}
                   whileTap={{ scale: 0.95 }}
                   href="https://wa.me/2347011236342"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto px-10 py-5 bg-brand-gold text-black font-bold rounded-full hover:bg-brand-gold-light transition-all flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(212,175,55,0.4)] text-lg border border-brand-gold-light/50 cursor-pointer touch-manipulation"
+                  className="w-full sm:w-auto px-10 py-5 bg-transparent text-brand-gold font-bold rounded-full hover:bg-brand-gold/10 transition-all flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(229,193,88,0.1)] text-lg border border-brand-gold cursor-pointer touch-manipulation"
                 >
                   <MessageSquare size={20} />
                   Book Appointment
@@ -600,72 +672,149 @@ export default function App() {
             </motion.div>
           </motion.div>
         </div>
+      </section>
 
-        <motion.div 
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 text-brand-gold/70 z-20"
-          animate={{ y: [0, 15, 0], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <span className="text-xs uppercase tracking-[0.3em] font-bold">Scroll</span>
-          <div className="w-[2px] h-16 bg-gradient-to-b from-brand-gold to-transparent rounded-full"></div>
-        </motion.div>
+      <Marquee />
+
+      {/* About Us Section */}
+      <section id="about" className="py-32 relative z-10 bg-brand-surface overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="text-[30vw] font-serif font-bold text-outline absolute -top-20 -left-10 opacity-20 whitespace-nowrap">EST. 2024</div>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, type: "spring" }}
+              className="lg:col-span-5"
+            >
+              <h2 className="text-5xl md:text-6xl font-serif font-bold mb-8 leading-tight">
+                Redefining <br/><span className="text-gradient-gold italic">Craftsmanship</span>
+              </h2>
+              <p className="text-gray-400 mb-6 text-lg leading-relaxed">
+                Founded with a vision to redefine excellence, Haikhandoit Ventures has grown into a multi-faceted enterprise dedicated to delivering premium quality across various industries. 
+              </p>
+              <p className="text-gray-400 mb-10 text-lg leading-relaxed">
+                From flawless construction finishes to state-of-the-art music production, our commitment to 100X efficiency remains unwavering. We value integrity, craftsmanship, and the relentless pursuit of perfection.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-6">
+                <div className="p-6 bg-brand-dark rounded-3xl border border-white/5 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-brand-gold/5 transform scale-y-0 origin-bottom group-hover:scale-y-100 transition-transform duration-500"></div>
+                  <h4 className="text-4xl font-serif font-bold text-brand-gold mb-2 relative z-10">10+</h4>
+                  <p className="text-xs text-gray-400 uppercase tracking-[0.2em] relative z-10">Years Experience</p>
+                </div>
+                <div className="p-6 bg-brand-dark rounded-3xl border border-white/5 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-brand-gold/5 transform scale-y-0 origin-bottom group-hover:scale-y-100 transition-transform duration-500"></div>
+                  <h4 className="text-4xl font-serif font-bold text-brand-gold mb-2 relative z-10">500+</h4>
+                  <p className="text-xs text-gray-400 uppercase tracking-[0.2em] relative z-10">Projects Done</p>
+                </div>
+              </div>
+            </motion.div>
+            
+            <div className="lg:col-span-7 relative">
+              <TiltCard>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, type: "spring" }}
+                  className="relative rounded-[2rem] overflow-hidden border border-brand-gold/20 shadow-[0_0_50px_rgba(229,193,88,0.15)] aspect-[4/5] lg:aspect-auto lg:h-[700px]"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent z-10 opacity-80" />
+                  <img 
+                    src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=1200" 
+                    alt="Haikhandoit Team at Work" 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute bottom-10 left-10 z-20">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-brand-gold flex items-center justify-center text-black">
+                        <Hammer size={30} />
+                      </div>
+                      <div>
+                        <p className="text-white font-serif text-2xl font-bold">Expert Builders</p>
+                        <p className="text-brand-gold text-sm tracking-widest uppercase">At Your Service</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </TiltCard>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-32 relative z-10 bg-brand-dark">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20 perspective-1000">
-            <motion.h2 
-              initial={{ opacity: 0, rotateX: -30, y: 50 }}
-              whileInView={{ opacity: 1, rotateX: 0, y: 0 }}
+      <section id="services" className="py-32 relative z-10 bg-brand-dark overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-brand-gold/5 to-transparent pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-20 perspective-1000 gap-8">
+            <motion.div 
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, type: "spring" }}
-              className="text-4xl md:text-5xl font-serif font-bold mb-4 text-3d"
+              className="max-w-2xl"
             >
-              Our <span className="text-gradient-gold">Ventures</span>
-            </motion.h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Discover our diverse range of premium services, each backed by our commitment to 100X efficiency and quality.</p>
+              <h2 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-none">
+                Our <br/><span className="text-gradient-gold italic">Ventures</span>
+              </h2>
+              <p className="text-gray-400 text-lg">Discover our diverse range of premium services, each backed by our commitment to 100X efficiency and uncompromising quality.</p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="hidden md:block"
+            >
+              <div className="w-24 h-[1px] bg-brand-gold mb-4"></div>
+              <p className="text-brand-gold uppercase tracking-[0.3em] text-sm font-bold">Explore All</p>
+            </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {SERVICES.map((service, idx) => (
               <motion.div
                 key={service.id}
-                initial={{ opacity: 0, y: 100, rotateX: 30, rotateY: 30, scale: 0.8 }}
-                whileInView={{ opacity: 1, y: 0, rotateX: 0, rotateY: 0, scale: 1 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ delay: idx * 0.1, duration: 1, type: "spring", bounce: 0.4 }}
-                className="preserve-3d h-full"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: idx * 0.1, duration: 0.8 }}
+                className="h-full group cursor-pointer"
+                onClick={() => setActiveService(service)}
               >
-                <TiltCard className="h-full">
-                  <div className="group h-full bg-brand-gray rounded-3xl overflow-hidden border border-white/5 hover:border-brand-gold/50 transition-colors flex flex-col relative preserve-3d shadow-2xl">
-                    <div className="h-56 overflow-hidden relative preserve-3d" style={{ transform: 'translateZ(40px)' }}>
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors z-10" />
-                      <img
-                        src={service.image}
-                        alt={service.title}
-                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute top-4 right-4 z-20 w-12 h-12 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-brand-gold shadow-[0_0_20px_rgba(212,175,55,0.4)]">
-                        <service.icon size={24} />
-                      </div>
-                    </div>
-                    <div className="p-8 flex-1 flex flex-col preserve-3d" style={{ transform: 'translateZ(60px)' }}>
-                      <h3 className="text-xl font-bold mb-3 font-serif">{service.title}</h3>
-                      <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{service.description}</p>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setActiveService(service)}
-                        className="w-full py-4 rounded-xl border border-brand-gold/30 text-brand-gold font-medium hover:bg-brand-gold hover:text-black transition-all flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(212,175,55,0.1)] hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] cursor-pointer touch-manipulation"
-                      >
-                        <MessageSquare size={16} />
-                        Ask AI Consultant
-                      </motion.button>
+                <div className="h-full bg-brand-surface rounded-[2rem] p-2 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 flex flex-col relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <div className="h-64 rounded-[1.5rem] overflow-hidden relative mb-6">
+                    <div className="absolute inset-0 bg-brand-dark/40 group-hover:bg-transparent transition-colors duration-500 z-10" />
+                    <img
+                      src={service.image}
+                      alt={service.title}
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000 ease-out"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute top-4 right-4 z-20 w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 group-hover:bg-brand-gold group-hover:text-black group-hover:border-brand-gold transition-all duration-500">
+                      <service.icon size={20} />
                     </div>
                   </div>
-                </TiltCard>
+                  
+                  <div className="px-6 pb-8 flex-1 flex flex-col relative z-20">
+                    <h3 className="text-2xl font-bold mb-3 font-serif group-hover:text-brand-gold transition-colors">{service.title}</h3>
+                    <p className="text-gray-400 text-sm mb-8 flex-1 leading-relaxed">{service.description}</p>
+                    
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="text-xs uppercase tracking-widest text-brand-gold font-bold">Consult AI</span>
+                      <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-300">
+                        <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -673,59 +822,54 @@ export default function App() {
       </section>
 
       {/* Location Section */}
-      <section id="location" className="py-32 relative z-10 bg-brand-gray overflow-hidden">
-        <div className="absolute inset-0 bg-mesh opacity-50"></div>
+      <section id="location" className="py-32 relative z-10 bg-brand-surface overflow-hidden">
+        <div className="absolute inset-0 bg-mesh opacity-30"></div>
         <ParticleBackground />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -50, rotateY: -20 }}
-              whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, type: "spring" }}
-              className="preserve-3d"
             >
-              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 text-3d">
-                Visit Our <span className="text-gradient-gold">Headquarters</span>
+              <h2 className="text-5xl md:text-6xl font-serif font-bold mb-8 leading-tight">
+                Visit Our <br/><span className="text-gradient-gold italic">Headquarters</span>
               </h2>
-              <p className="text-gray-400 mb-8 text-lg" style={{ transform: 'translateZ(20px)' }}>
+              <p className="text-gray-400 mb-12 text-lg leading-relaxed">
                 Experience our premium services firsthand. Our doors are open for consultations, product viewing, and business inquiries.
               </p>
               
-              <div className="space-y-6 mb-10" style={{ transform: 'translateZ(30px)' }}>
-                <Magnetic>
-                  <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/5 transition-colors cursor-none border border-transparent hover:border-brand-gold/20">
-                    <div className="w-14 h-14 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold shrink-0 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                      <MapPin size={28} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-xl mb-1 text-white">Address</h4>
-                      <p className="text-gray-400 leading-relaxed">13 Ardulai crescent, alagbole akute,<br/>Ogun state, Nigeria</p>
-                    </div>
+              <div className="space-y-4 mb-12">
+                <div className="flex items-start gap-6 p-6 rounded-3xl bg-brand-dark border border-white/5 hover:border-brand-gold/20 transition-colors group">
+                  <div className="w-16 h-16 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold shrink-0 group-hover:scale-110 transition-transform duration-500">
+                    <MapPin size={24} />
                   </div>
-                </Magnetic>
-                <Magnetic>
-                  <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/5 transition-colors cursor-none border border-transparent hover:border-brand-gold/20">
-                    <div className="w-14 h-14 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold shrink-0 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                      <Phone size={28} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-xl mb-1 text-white">Contact</h4>
-                      <p className="text-gray-400 leading-relaxed">Call: 08160004019<br/>WhatsApp: 07011236342</p>
-                    </div>
+                  <div>
+                    <h4 className="font-bold text-xl mb-2 text-white font-serif">Address</h4>
+                    <p className="text-gray-400 leading-relaxed">13 Ardulai crescent, alagbole akute,<br/>Ogun state, Nigeria</p>
                   </div>
-                </Magnetic>
+                </div>
+                
+                <div className="flex items-start gap-6 p-6 rounded-3xl bg-brand-dark border border-white/5 hover:border-brand-gold/20 transition-colors group">
+                  <div className="w-16 h-16 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold shrink-0 group-hover:scale-110 transition-transform duration-500">
+                    <Phone size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xl mb-2 text-white font-serif">Contact</h4>
+                    <p className="text-gray-400 leading-relaxed">Call: <a href="tel:08160004019" className="hover:text-brand-gold transition-colors">08160004019</a><br/>WhatsApp: <a href="https://wa.me/2347011236342" target="_blank" rel="noopener noreferrer" className="hover:text-brand-gold transition-colors">07011236342</a></p>
+                  </div>
+                </div>
               </div>
 
               <Magnetic className="inline-block w-full sm:w-auto">
                 <motion.a
-                  whileHover={{ scale: 1.05, boxShadow: "0px 15px 30px rgba(255,255,255,0.2)" }}
+                  whileHover={{ scale: 1.05, boxShadow: "0px 15px 30px rgba(255,255,255,0.1)" }}
                   whileTap={{ scale: 0.95 }}
                   href="https://www.google.com/maps/dir/?api=1&destination=13+Ardulai+crescent,+alagbole+akute,+ogun+state,+nigeria"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full sm:w-auto justify-center px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-all items-center gap-3 shadow-xl text-lg cursor-pointer touch-manipulation"
-                  style={{ transform: 'translateZ(40px)' }}
                 >
                   <MapPin size={20} />
                   Get Directions
@@ -733,27 +877,29 @@ export default function App() {
               </Magnetic>
             </motion.div>
 
-            <TiltCard>
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-r from-brand-gold/20 to-transparent blur-2xl opacity-50 rounded-full"></div>
               <motion.div
-                initial={{ opacity: 0, scale: 0.8, rotateX: 20 }}
-                whileInView={{ opacity: 1, scale: 1, rotateX: 0 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, type: "spring" }}
-                className="h-[500px] rounded-3xl overflow-hidden border border-brand-gold/20 shadow-[0_0_40px_rgba(212,175,55,0.15)] relative preserve-3d"
+                className="h-[600px] rounded-[2rem] overflow-hidden border border-brand-gold/20 shadow-[0_0_50px_rgba(229,193,88,0.1)] relative z-10"
               >
+                <div className="absolute inset-0 bg-brand-dark/20 pointer-events-none z-10 mix-blend-overlay"></div>
                 {/* Google Maps Embed using q parameter for specific address */}
                 <iframe
                   src="https://maps.google.com/maps?q=13%20Ardulai%20crescent,%20alagbole%20akute,%20ogun%20state,%20nigeria&t=&z=15&ie=UTF8&iwloc=&output=embed"
                   width="100%"
                   height="100%"
-                  style={{ border: 0, transform: 'translateZ(20px)' }}
+                  style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  className="absolute inset-0 grayscale contrast-125 opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-700"
+                  className="absolute inset-0 grayscale contrast-125 opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-1000"
                 ></iframe>
               </motion.div>
-            </TiltCard>
+            </div>
           </div>
         </div>
       </section>
@@ -767,12 +913,7 @@ export default function App() {
         className="bg-black py-12 border-t border-white/5 relative z-20"
       >
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-gold rounded flex items-center justify-center text-black font-bold shadow-[0_0_10px_rgba(212,175,55,0.4)]">
-              H
-            </div>
-            <span className="text-lg font-serif font-bold tracking-wider">HAIKHANDOIT</span>
-          </div>
+          <Logo />
           
           <p className="text-gray-500 text-sm text-center md:text-left">
             © {new Date().getFullYear()} Haikhandoit Ventures. All rights reserved.
