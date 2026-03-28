@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring, useMotionTemplate } from 'motion/react';
-import { MapPin, Phone, MessageSquare, Instagram, Music, Paintbrush, Hammer, Sparkles, Headphones, X, Send, ChevronRight, Menu, Factory, ArrowRight, Mic } from 'lucide-react';
+import { MapPin, Phone, MessageSquare, Instagram, Music, Paintbrush, Hammer, Sparkles, Headphones, X, Send, ChevronRight, Menu, Factory, ArrowRight, Trash2 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
-import { LiveVoiceModal } from './components/LiveVoiceModal';
 
 // --- Types & Data ---
 
@@ -414,6 +413,10 @@ const AIConsultantModal = ({ service, onClose }: { service: Service, onClose: ()
     setInput('');
   };
 
+  const handleClear = () => {
+    setMessages([{ role: 'ai', text: `Hello! I'm the Haikhandoit AI Consultant for ${service.title}. How can I assist you today?` }]);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -443,9 +446,18 @@ const AIConsultantModal = ({ service, onClose }: { service: Service, onClose: ()
               <p className="text-xs text-brand-gold">{service.title}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleClear} 
+              className="text-gray-400 hover:text-red-400 transition-colors p-2 rounded-full hover:bg-white/5"
+              title="Clear Conversation"
+            >
+              <Trash2 size={18} />
+            </button>
+            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5">
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ transform: 'translateZ(10px)' }}>
@@ -483,10 +495,13 @@ const AIConsultantModal = ({ service, onClose }: { service: Service, onClose: ()
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white/10 text-white rounded-2xl p-3 flex gap-2 items-center shadow-lg">
-                <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="w-2 h-2 bg-brand-gold rounded-full" />
-                <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-2 h-2 bg-brand-gold rounded-full" />
-                <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-2 h-2 bg-brand-gold rounded-full" />
+              <div className="bg-white/10 text-white rounded-2xl p-3 flex gap-3 items-center shadow-lg">
+                <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">AI is typing</span>
+                <div className="flex gap-1">
+                  <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 bg-brand-gold rounded-full" />
+                  <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-brand-gold rounded-full" />
+                  <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-brand-gold rounded-full" />
+                </div>
               </div>
             </div>
           )}
@@ -770,7 +785,6 @@ const ParallaxImage = ({ src, alt }: { src: string, alt: string }) => {
 export default function App() {
   const [activeService, setActiveService] = useState<Service | null>(null);
   const [detailService, setDetailService] = useState<Service | null>(null);
-  const [isLiveVoiceOpen, setIsLiveVoiceOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollYProgress } = useScroll();
@@ -1351,25 +1365,6 @@ export default function App() {
             onClose={() => setDetailService(null)} 
             onConsultAI={() => setActiveService(detailService)}
           />
-        )}
-      </AnimatePresence>
-
-      {/* Live Voice FAB */}
-      <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setIsLiveVoiceOpen(true)}
-        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-full bg-brand-gold text-black shadow-[0_0_30px_rgba(229,193,88,0.4)] flex items-center justify-center hover:bg-white transition-colors"
-      >
-        <Mic size={28} />
-      </motion.button>
-
-      {/* Live Voice Modal */}
-      <AnimatePresence>
-        {isLiveVoiceOpen && (
-          <LiveVoiceModal onClose={() => setIsLiveVoiceOpen(false)} />
         )}
       </AnimatePresence>
     </div>
