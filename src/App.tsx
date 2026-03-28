@@ -573,8 +573,13 @@ const ContactForm = () => {
     e.preventDefault();
     if (validate()) {
       setIsSubmitting(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Construct mailto link
+      const subject = encodeURIComponent(`New Contact Form Submission from ${formData.name}`);
+      const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\nMessage:\n${formData.message}`);
+      
+      window.location.href = `mailto:haikhandoitventures@gmail.com?subject=${subject}&body=${body}`;
+
       setIsSubmitting(false);
       setIsSuccess(true);
       setFormData({ name: '', email: '', phone: '', message: '' });
