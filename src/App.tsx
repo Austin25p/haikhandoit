@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring, useMotionTemplate } from 'motion/react';
-import { MapPin, Phone, MessageSquare, Instagram, Music, Paintbrush, Hammer, Sparkles, Headphones, X, Send, ChevronRight, Menu, Factory, ArrowRight } from 'lucide-react';
+import { MapPin, Phone, MessageSquare, Instagram, Music, Paintbrush, Hammer, Sparkles, Headphones, X, Send, ChevronRight, Menu, Factory, ArrowRight, Mic } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
+import { LiveVoiceModal } from './components/LiveVoiceModal';
 
 // --- Types & Data ---
 
@@ -10,6 +11,8 @@ type Service = {
   id: string;
   title: string;
   description: string;
+  longDescription: string;
+  features: string[];
   icon: React.ElementType;
   image: string;
 };
@@ -19,6 +22,8 @@ const SERVICES: Service[] = [
     id: 'wall-painting',
     title: 'Wall & Construction Painting',
     description: 'Premium finishes for residential and commercial spaces. Expert color consultation and flawless execution.',
+    longDescription: 'Transform your spaces with our master-class painting services. We don\'t just apply paint; we engineer finishes that protect and elevate your property. From meticulous surface preparation to the final flawless coat, our experts use premium, weather-resistant materials to ensure lasting beauty. Whether it\'s a luxury residential interior or a large-scale commercial exterior, we guarantee a 100X improvement in aesthetic appeal and durability, minimizing disruption to your daily life.',
+    features: ['Residential & Commercial Painting', 'Expert Color Consultation', 'Surface Preparation & Repair', 'Eco-Friendly Paint Options', 'Flawless, Long-Lasting Finishes'],
     icon: Paintbrush,
     image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=800',
   },
@@ -26,6 +31,8 @@ const SERVICES: Service[] = [
     id: 'paint-production',
     title: 'Paint Production',
     description: 'High-quality, durable, and eco-friendly paints manufactured to the highest industry standards.',
+    longDescription: 'Experience the pinnacle of color technology with Haikhandoit\'s proprietary paint formulations. We manufacture high-performance, eco-friendly paints designed specifically for the African climate. Our products offer superior coverage, exceptional fade resistance, and a stunning array of custom colors. By controlling the production process, we ensure uncompromising quality and provide our clients with cost-effective, premium solutions that outlast standard market alternatives.',
+    features: ['In-House Paint Manufacturing', 'Eco-Friendly & Low VOC Formulations', 'Superior Coverage & Durability', 'Custom Color Matching', 'Wholesale & Retail Supply'],
     icon: Factory,
     image: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?auto=format&fit=crop&q=80&w=800',
   },
@@ -33,6 +40,8 @@ const SERVICES: Service[] = [
     id: 'skilled-labour',
     title: 'Skilled Labour Hiring',
     description: 'Reliable, vetted, and highly trained professionals for your construction and maintenance needs.',
+    longDescription: 'Eliminate the guesswork from your hiring process with our elite skilled labour network. We rigorously vet and supply top-tier professionals—from master carpenters and electricians to specialized construction crews. Our 100X efficiency mandate means you get reliable, highly trained experts who arrive on time, adhere to strict safety standards, and deliver exceptional craftsmanship, keeping your projects on schedule and within budget.',
+    features: ['Thoroughly Vetted Professionals', 'Wide Range of Construction Trades', 'Flexible Hiring Options (Short/Long Term)', 'On-Site Supervision Available', 'Commitment to Safety Standards'],
     icon: Hammer,
     image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800',
   },
@@ -40,6 +49,8 @@ const SERVICES: Service[] = [
     id: 'cleaning-agency',
     title: 'Cleaning Agency',
     description: 'Immaculate cleaning services for homes, offices, and post-construction sites. We leave no speck of dust.',
+    longDescription: 'Step into immaculate perfection with our bespoke cleaning services. We go beyond surface-level tidying, employing advanced deep-cleaning techniques and hospital-grade, eco-friendly products. Whether it\'s a post-construction site requiring heavy-duty clearing or a corporate office needing daily pristine maintenance, our discreet and highly trained staff ensure a spotless, hygienic environment that reflects the premium standards of your business or home.',
+    features: ['Residential & Commercial Cleaning', 'Post-Construction Deep Cleaning', 'Eco-Friendly Cleaning Products', 'Flexible Scheduling', 'Highly Trained Cleaning Staff'],
     icon: Sparkles,
     image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&q=80&w=800',
   },
@@ -47,6 +58,8 @@ const SERVICES: Service[] = [
     id: 'musical-instruments',
     title: 'Musical Instruments & Gadgets',
     description: 'Top-tier instruments and audio gadgets for professionals and enthusiasts alike.',
+    longDescription: 'Elevate your sound with our curated collection of world-class musical instruments and pro-audio gear. We source directly from top global manufacturers to bring you everything from concert-grade acoustic instruments to cutting-edge digital workstations. Our expert consultants don\'t just sell equipment; they provide tailored acoustic solutions, ensuring you invest in the perfect gear to capture your unique sonic signature with crystal-clear fidelity.',
+    features: ['Wide Selection of Instruments', 'Professional Audio Gadgets & Gear', 'Expert Advice & Recommendations', 'Quality Assurance Guarantee', 'Accessories & Maintenance Supplies'],
     icon: Music,
     image: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&q=80&w=800',
   },
@@ -54,6 +67,8 @@ const SERVICES: Service[] = [
     id: 'music-production',
     title: 'Music Production',
     description: 'State-of-the-art studio facilities and expert engineering to bring your sonic vision to life.',
+    longDescription: 'Unleash your creative genius in our acoustically perfected, state-of-the-art production studios. We offer a comprehensive suite of services including recording, mixing, mastering, and beat composition. Guided by industry-veteran sound engineers using flagship analog and digital gear, we meticulously craft your tracks to achieve a polished, radio-ready sound. Your vision, amplified to its absolute highest potential.',
+    features: ['State-of-the-Art Recording Studio', 'Professional Mixing & Mastering', 'Experienced Sound Engineers', 'Vocal Tracking & Editing', 'Beat Production & Composition'],
     icon: Headphones,
     image: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=800',
   },
@@ -62,7 +77,7 @@ const SERVICES: Service[] = [
 // --- Hooks ---
 
 const useAIConsultant = () => {
-  const [messages, setMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([]);
+  const [messages, setMessages] = useState<{ role: 'user' | 'ai', text: string, links?: { title: string, uri: string }[] }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const sendMessage = async (serviceName: string, text: string) => {
@@ -78,6 +93,7 @@ const useAIConsultant = () => {
         model: 'gemini-3-flash-preview',
         contents: `User is asking about our ${serviceName} service. User message: ${text}`,
         config: {
+          tools: [{ googleMaps: {} }],
           systemInstruction: `You are the premium AI Consultant for Haikhandoit Ventures. 
           We offer: Wall & Construction Painting, Paint Production, Skilled Labour Hiring, Cleaning Agency, Musical Instruments & Gadgets, and Music Production.
           Location: 13 Ardulai crescent, alagbole akute, ogun state, nigeria.
@@ -86,7 +102,25 @@ const useAIConsultant = () => {
           Do not use markdown headers, keep it conversational.`
         }
       });
-      setMessages(prev => [...prev, { role: 'ai', text: response.text || 'I apologize, I am currently unable to respond. Please contact us directly.' }]);
+
+      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+      const mapsLinks: { title: string, uri: string }[] = [];
+      if (chunks) {
+        chunks.forEach((chunk: any) => {
+          if (chunk.maps?.uri) {
+            mapsLinks.push({ 
+              title: chunk.maps.title || 'View on Google Maps', 
+              uri: chunk.maps.uri 
+            });
+          }
+        });
+      }
+
+      setMessages(prev => [...prev, { 
+        role: 'ai', 
+        text: response.text || 'I apologize, I am currently unable to respond. Please contact us directly.',
+        links: mapsLinks.length > 0 ? mapsLinks : undefined
+      }]);
     } catch (error) {
       console.error("AI Error:", error);
       setMessages(prev => [...prev, { role: 'ai', text: 'I apologize, I encountered an error. Please call us at 08160004019 or WhatsApp 07011236342.' }]);
@@ -419,8 +453,27 @@ const AIConsultantModal = ({ service, onClose }: { service: Service, onClose: ()
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[80%] rounded-2xl p-3 shadow-lg ${msg.role === 'user' ? 'bg-brand-gold text-black' : 'bg-white/10 text-white'}`}>
                 {msg.role === 'ai' ? (
-                  <div className="markdown-body text-sm">
-                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  <div className="flex flex-col gap-2">
+                    <div className="markdown-body text-sm">
+                      <ReactMarkdown>{msg.text}</ReactMarkdown>
+                    </div>
+                    {msg.links && msg.links.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-white/10 flex flex-col gap-2">
+                        <p className="text-xs text-brand-gold font-semibold uppercase tracking-wider">Location Info:</p>
+                        {msg.links.map((link, i) => (
+                          <a 
+                            key={i} 
+                            href={link.uri} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs flex items-center gap-1.5 text-blue-300 hover:text-blue-200 transition-colors bg-blue-500/10 px-2 py-1.5 rounded-md"
+                          >
+                            <MapPin size={12} />
+                            <span className="truncate">{link.title}</span>
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-sm">{msg.text}</p>
@@ -466,8 +519,258 @@ const AIConsultantModal = ({ service, onClose }: { service: Service, onClose: ()
 
 // --- Main App ---
 
+const ContactForm = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    const phoneRegex = /^\+?[\d\s-]{10,15}$/;
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = 'Please enter a valid phone number (10-15 digits)';
+    }
+
+    if (!formData.message.trim()) newErrors.message = 'Message is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validate()) {
+      setIsSubmitting(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setIsSubmitting(false);
+      setIsSuccess(true);
+      setFormData({ name: '', email: '', phone: '', message: '' });
+      setTimeout(() => setIsSuccess(false), 5000);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-2">Full Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className={`w-full bg-brand-surface border ${errors.name ? 'border-red-500' : 'border-white/10'} rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors`}
+            placeholder="John Doe"
+          />
+          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+        </div>
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className={`w-full bg-brand-surface border ${errors.email ? 'border-red-500' : 'border-white/10'} rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors`}
+            placeholder="john@example.com"
+          />
+          {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+        </div>
+      </div>
+      
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-400 mb-2">Phone Number</label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          className={`w-full bg-brand-surface border ${errors.phone ? 'border-red-500' : 'border-white/10'} rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors`}
+          placeholder="+234 816 000 4019"
+        />
+        {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="message" className="block text-sm font-medium text-gray-400 mb-2">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          value={formData.message}
+          onChange={handleChange}
+          rows={4}
+          className={`w-full bg-brand-surface border ${errors.message ? 'border-red-500' : 'border-white/10'} rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold transition-colors resize-none`}
+          placeholder="How can we help you?"
+        />
+        {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
+      </div>
+
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full py-4 bg-brand-gold text-black font-bold rounded-xl hover:bg-brand-gold-light transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(212,175,55,0.3)] disabled:opacity-70"
+      >
+        {isSubmitting ? (
+          <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <>
+            <Send size={18} />
+            Send Message
+          </>
+        )}
+      </motion.button>
+
+      {isSuccess && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-center text-sm"
+        >
+          Thank you! Your message has been sent successfully. We will get back to you soon.
+        </motion.div>
+      )}
+    </form>
+  );
+};
+
+const ServiceDetailsModal = ({ service, onClose, onConsultAI }: { service: Service, onClose: () => void, onConsultAI: () => void }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md perspective-1000"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, rotateX: 10, y: 30 }}
+        animate={{ scale: 1, rotateX: 0, y: 0 }}
+        exit={{ scale: 0.9, rotateX: -10, y: 30 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="w-full max-w-3xl bg-brand-surface rounded-[2rem] overflow-hidden border border-brand-gold/20 shadow-[0_0_50px_rgba(212,175,55,0.15)] flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="relative h-64 md:h-80 shrink-0">
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-surface via-brand-surface/50 to-transparent z-10" />
+          <img
+            src={service.image}
+            alt={service.title}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <button 
+            onClick={onClose} 
+            className="absolute top-6 right-6 z-20 w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:bg-white hover:text-black transition-colors"
+          >
+            <X size={20} />
+          </button>
+          <div className="absolute bottom-6 left-8 z-20 flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-brand-gold flex items-center justify-center text-black shadow-[0_0_20px_rgba(212,175,55,0.4)]">
+              <service.icon size={28} />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white drop-shadow-lg">{service.title}</h2>
+          </div>
+        </div>
+
+        <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+          <p className="text-gray-300 text-lg leading-relaxed mb-8">
+            {service.longDescription}
+          </p>
+          
+          <h3 className="text-xl font-bold text-brand-gold mb-4 font-serif">Key Features & Benefits</h3>
+          <ul className="space-y-3 mb-8">
+            {service.features.map((feature, idx) => (
+              <li key={idx} className="flex items-start gap-3 text-gray-400">
+                <div className="w-6 h-6 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold shrink-0 mt-0.5">
+                  <Sparkles size={12} />
+                </div>
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="p-6 border-t border-white/5 bg-brand-dark/50 flex flex-col sm:flex-row gap-4 justify-end shrink-0">
+          <button
+            onClick={onClose}
+            className="px-6 py-3 rounded-xl border border-white/10 text-white font-medium hover:bg-white/5 transition-colors"
+          >
+            Close
+          </button>
+          <button
+            onClick={() => {
+              onClose();
+              onConsultAI();
+            }}
+            className="px-8 py-3 rounded-xl bg-brand-gold text-black font-bold hover:bg-brand-gold-light transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+          >
+            <MessageSquare size={18} />
+            Consult AI About This
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const ParallaxImage = ({ src, alt }: { src: string, alt: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+  const y = useTransform(scrollYProgress, [0, 1], ["-15%", "15%"]);
+
+  return (
+    <div ref={ref} className="absolute inset-0 overflow-hidden rounded-[1.5rem]">
+      <motion.div style={{ y, height: "130%", top: "-15%" }} className="absolute inset-0 w-full">
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000 ease-out"
+          referrerPolicy="no-referrer"
+        />
+      </motion.div>
+    </div>
+  );
+};
+
 export default function App() {
   const [activeService, setActiveService] = useState<Service | null>(null);
+  const [detailService, setDetailService] = useState<Service | null>(null);
+  const [isLiveVoiceOpen, setIsLiveVoiceOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollYProgress } = useScroll();
@@ -487,12 +790,57 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMenuOpen]);
+
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
     setIsMenuOpen(false);
+  };
+
+  const menuVariants = {
+    closed: {
+      opacity: 0,
+      clipPath: "circle(0% at 100% 0%)",
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 40
+      }
+    },
+    open: {
+      opacity: 1,
+      clipPath: "circle(150% at 100% 0%)",
+      transition: {
+        type: "spring",
+        stiffness: 20,
+        restDelta: 2
+      }
+    }
+  };
+
+  const itemVariants = {
+    closed: { opacity: 0, y: 20 },
+    open: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: i * 0.1 + 0.2,
+        duration: 0.5,
+        ease: [0.25, 0.1, 0.25, 1]
+      }
+    })
   };
 
   return (
@@ -504,25 +852,13 @@ export default function App() {
         style={{ scaleX }}
       />
 
-      {/* Mobile Nav Overlay */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsMenuOpen(false)}
-            className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-          />
-        )}
-      </AnimatePresence>
-
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'glass-panel border-b border-white/10 py-0' : 'bg-transparent py-4'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            className="relative z-[60]"
           >
             <Logo />
           </motion.div>
@@ -545,6 +881,10 @@ export default function App() {
               Services
               <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-brand-gold transition-all duration-300 group-hover:w-full shadow-[0_0_10px_#d4af37]"></span>
             </button>
+            <button onClick={() => scrollToSection('contact')} className="text-sm font-medium hover:text-brand-gold transition-colors relative group uppercase tracking-widest">
+              Contact
+              <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-brand-gold transition-all duration-300 group-hover:w-full shadow-[0_0_10px_#d4af37]"></span>
+            </button>
             <button onClick={() => scrollToSection('location')} className="text-sm font-medium hover:text-brand-gold transition-colors relative group uppercase tracking-widest">
               Location
               <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-brand-gold transition-all duration-300 group-hover:w-full shadow-[0_0_10px_#d4af37]"></span>
@@ -564,7 +904,7 @@ export default function App() {
 
           {/* Mobile Menu Toggle */}
           <button 
-            className="md:hidden text-white relative z-[100] p-4 -mr-4 flex items-center justify-center cursor-pointer touch-manipulation" 
+            className="md:hidden text-white relative z-[60] w-12 h-12 flex flex-col items-center justify-center cursor-pointer touch-manipulation group" 
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -572,27 +912,54 @@ export default function App() {
             }}
             aria-label="Toggle Menu"
           >
-            {isMenuOpen ? <X size={32} /> : <Menu size={32} />}
+            <motion.span 
+              animate={isMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
+              className="w-8 h-[2px] bg-brand-gold block mb-2 transition-colors group-hover:bg-white"
+            />
+            <motion.span 
+              animate={isMenuOpen ? { opacity: 0, x: 20 } : { opacity: 1, x: 0 }}
+              className="w-8 h-[2px] bg-brand-gold block mb-2 transition-colors group-hover:bg-white"
+            />
+            <motion.span 
+              animate={isMenuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
+              className="w-8 h-[2px] bg-brand-gold block transition-colors group-hover:bg-white"
+            />
           </button>
         </div>
 
-        {/* Mobile Nav */}
+        {/* Full Screen Mobile Nav */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="md:hidden glass-panel border-t border-white/10 overflow-hidden"
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={menuVariants}
+              className="md:hidden fixed inset-0 bg-brand-dark/95 backdrop-blur-xl z-[50] flex flex-col justify-center items-center"
             >
-              <div className="flex flex-col p-6 gap-2">
-                <button onClick={() => scrollToSection('home')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">Home</button>
-                <button onClick={() => scrollToSection('about')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">About</button>
-                <button onClick={() => scrollToSection('services')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">Services</button>
-                <button onClick={() => scrollToSection('location')} className="text-left text-lg font-medium py-3 w-full cursor-pointer touch-manipulation">Location</button>
-                <a href="tel:08160004019" className="px-5 py-4 bg-brand-gold text-black font-semibold rounded-full text-center mt-4 shadow-[0_0_15px_rgba(212,175,55,0.4)] cursor-pointer touch-manipulation block w-full">
-                  Call Now: 08160004019
-                </a>
+              <div className="absolute inset-0 bg-mesh opacity-20 pointer-events-none"></div>
+              <div className="flex flex-col items-center gap-8 w-full px-6 relative z-10">
+                {['Home', 'About', 'Services', 'Contact', 'Location'].map((item, i) => (
+                  <motion.button 
+                    key={item}
+                    custom={i}
+                    variants={itemVariants}
+                    onClick={() => scrollToSection(item.toLowerCase())} 
+                    className="text-4xl font-serif font-bold text-white hover:text-brand-gold transition-colors cursor-pointer touch-manipulation relative group"
+                  >
+                    {item}
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
+                  </motion.button>
+                ))}
+                <motion.a 
+                  custom={5}
+                  variants={itemVariants}
+                  href="tel:08160004019" 
+                  className="mt-8 px-8 py-4 bg-brand-gold text-black font-bold rounded-full text-center shadow-[0_0_20px_rgba(212,175,55,0.4)] cursor-pointer touch-manipulation flex items-center gap-3 text-xl"
+                >
+                  <Phone size={24} />
+                  Call: 08160004019
+                </motion.a>
               </div>
             </motion.div>
           )}
@@ -610,7 +977,7 @@ export default function App() {
         <FloatingObject delay={4} xOffset="-25vw" yOffset="30vh"><Hammer size={80} /></FloatingObject>
         <FloatingObject delay={1} xOffset="25vw" yOffset="-25vh"><Sparkles size={140} /></FloatingObject>
 
-        <motion.div style={{ y, opacity, scale }} className="absolute inset-0 z-0">
+        <motion.div style={{ y, opacity, scale }} className="absolute inset-0 z-0 h-[120%] -top-[10%]">
           <img
             src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=2000"
             alt="Premium Interior"
@@ -792,12 +1159,7 @@ export default function App() {
                   
                   <div className="h-64 rounded-[1.5rem] overflow-hidden relative mb-6">
                     <div className="absolute inset-0 bg-brand-dark/40 group-hover:bg-transparent transition-colors duration-500 z-10" />
-                    <img
-                      src={service.image}
-                      alt={service.title}
-                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000 ease-out"
-                      referrerPolicy="no-referrer"
-                    />
+                    <ParallaxImage src={service.image} alt={service.title} />
                     <div className="absolute top-4 right-4 z-20 w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 group-hover:bg-brand-gold group-hover:text-black group-hover:border-brand-gold transition-all duration-500">
                       <service.icon size={20} />
                     </div>
@@ -807,16 +1169,58 @@ export default function App() {
                     <h3 className="text-2xl font-bold mb-3 font-serif group-hover:text-brand-gold transition-colors">{service.title}</h3>
                     <p className="text-gray-400 text-sm mb-8 flex-1 leading-relaxed">{service.description}</p>
                     
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="text-xs uppercase tracking-widest text-brand-gold font-bold">Consult AI</span>
-                      <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-300">
-                        <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
-                      </div>
+                    <div className="flex items-center justify-between mt-auto gap-4">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setDetailService(service); }}
+                        className="flex-1 py-3 rounded-xl border border-white/10 hover:border-brand-gold/50 text-white hover:text-brand-gold transition-all text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+                      >
+                        View Details
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setActiveService(service); }}
+                        className="w-12 h-12 rounded-xl bg-brand-gold/10 text-brand-gold hover:bg-brand-gold hover:text-black transition-all flex items-center justify-center shrink-0"
+                        title="Consult AI"
+                      >
+                        <MessageSquare size={18} />
+                      </button>
                     </div>
                   </div>
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section id="contact" className="py-32 relative z-10 bg-brand-dark overflow-hidden">
+        <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-brand-gold/5 to-transparent pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, type: "spring" }}
+            >
+              <h2 className="text-5xl md:text-6xl font-serif font-bold mb-8 leading-tight">
+                Get in <br/><span className="text-gradient-gold italic">Touch</span>
+              </h2>
+              <p className="text-gray-400 mb-12 text-lg leading-relaxed">
+                Ready to start your next project? Have questions about our services? Send us a message and our team will get back to you promptly.
+              </p>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, type: "spring" }}
+              className="bg-brand-surface p-8 md:p-10 rounded-[2rem] border border-white/5 shadow-2xl relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/5 to-transparent rounded-[2rem] pointer-events-none"></div>
+              <ContactForm />
+            </motion.div>
           </div>
         </div>
       </section>
@@ -936,6 +1340,36 @@ export default function App() {
       <AnimatePresence>
         {activeService && (
           <AIConsultantModal service={activeService} onClose={() => setActiveService(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* Service Details Modal */}
+      <AnimatePresence>
+        {detailService && (
+          <ServiceDetailsModal 
+            service={detailService} 
+            onClose={() => setDetailService(null)} 
+            onConsultAI={() => setActiveService(detailService)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Live Voice FAB */}
+      <motion.button
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsLiveVoiceOpen(true)}
+        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-full bg-brand-gold text-black shadow-[0_0_30px_rgba(229,193,88,0.4)] flex items-center justify-center hover:bg-white transition-colors"
+      >
+        <Mic size={28} />
+      </motion.button>
+
+      {/* Live Voice Modal */}
+      <AnimatePresence>
+        {isLiveVoiceOpen && (
+          <LiveVoiceModal onClose={() => setIsLiveVoiceOpen(false)} />
         )}
       </AnimatePresence>
     </div>
